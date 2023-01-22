@@ -1,0 +1,42 @@
+name: Compile MTGJSON Data for Macaco
+on:
+  push:
+    branches:
+      - master
+  schedule:
+    - cron: '0 0 * * *' # “At 00:00.”
+
+permissions: write-all
+
+jobs:
+  build:
+    name: generate nightly data
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      FILE: macaco-database.json.gz
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: download
+      run: |
+        wget -q https://mtgjson.com/api/v5/AllPrintings.json.gz
+        wget -q https://mtgjson.com/api/v5/AllPrices.json.gz
+
+    - name: uncompress
+      run: |
+        gunzip AllPrintings.json.gz
+        gunzip AllPrices.json.gz
+
+    - name: build
+      run: |
+        python build-data.py
+        gzip macaco-database.json
+
+    - name: upload
+      run: |
+        gh release delete-asset nightly macaco-database.json.gz || true
+        gh release upload nightly ./macaco-database.json.gz
