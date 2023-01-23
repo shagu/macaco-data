@@ -10,35 +10,51 @@ with open("AllPrintings.json", "r") as f:
 with open("AllPrices.json", "r") as f:
   all_prices = json.loads(f.read())
 
-# prepare fallback language lookup table
-print("Preparing Locale Lookup Table...")
+# prepare card locale lookup table
+print("Building Locale Lookup JSON...")
 locales = {}
 
 for set_id in all_printings["data"].keys():
   for card in all_printings["data"][set_id]["cards"]:
-    # build card locales
+    # prepare card locale table
     if not card["name"] in locales:
       locales[card["name"]] = { }
 
-    # english
-    locales[card["name"]]["English"] = {
-      'name': card.get('name'),
-      'type': card.get('type'),
-      'text': card.get('text'),
-      'mult': card.get('multiverseId'),
-    }
+    lcard = locales[card["name"]]
 
-    # multi languages
-    for locale in card['foreignData']:
-      locales[card["name"]][locale["language"]] = {
-        'name': locale.get('name'),
-        'type': locale.get('type'),
-        'text': locale.get('text'),
-        'mult': locale.get('multiverseId'),
-      }
+    # english
+    language = "English"
+
+    if not language in lcard:
+      lcard[language] = { "name": [], "text": [], "type": [] }
+
+    if not card.get('name') in lcard[language]["name"]:
+      lcard[language]["name"].append(card.get('name'))
+
+    if not card.get('type') in lcard[language]["type"]:
+      lcard[language]["type"].append(card.get('type'))
+
+    if not card.get('text') in lcard[language]["text"]:
+      lcard[language]["text"].append(card.get('text'))
+
+    # other locales
+    for card in card['foreignData']:
+      language = card["language"]
+
+      if not language in lcard:
+        lcard[language] = { "name": [], "text": [], "type": [] }
+
+      if not card.get('name') in lcard[language]["name"]:
+        lcard[language]["name"].append(card.get('name'))
+
+      if not card.get('type') in lcard[language]["type"]:
+        lcard[language]["type"].append(card.get('type'))
+
+      if not card.get('text') in lcard[language]["text"]:
+        lcard[language]["text"].append(card.get('text'))
 
 # build macaco-metadata
-print("Building Macaco Metadata...")
+print("Building Card Metadata JSON...")
 metadata = {}
 
 for set_id in all_printings["data"].keys():
@@ -54,64 +70,74 @@ for set_id in all_printings["data"].keys():
       metadata[set_id][number] = { }
 
     # read price data
-    prices = [ 0, 0 ]
+    prices = [ 0, 0, 0, 0 ]
 
     try:
-      # read cardkingdom data as price baseline
+      # obtain cardkingdom card prices
       for date in all_prices["data"][card["uuid"]]["paper"]["cardkingdom"]["buylist"]["normal"]:
         prices[0] = all_prices["data"][card["uuid"]]["paper"]["cardkingdom"]["buylist"]["normal"][date]
 
       for date in all_prices["data"][card["uuid"]]["paper"]["cardkingdom"]["buylist"]["foil"]:
         prices[1] = all_prices["data"][card["uuid"]]["paper"]["cardkingdom"]["buylist"]["foil"][date]
 
-      # overwrite with cardmarket where possible
+      # obtain cardmarket card prices
       for date in all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["normal"]:
-        prices[0] = all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["normal"][date]
+        prices[2] = all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["normal"][date]
 
       for date in all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["foil"]:
-        prices[1] = all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["foil"][date]
+        prices[3] = all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["foil"][date]
     except:
       pass
 
     # read/write basic card data
-    metacard = metadata[set_id][number]
-    metacard['artist'] = card.get('artist')
-    metacard['color'] = card.get('color')
-    metacard['identity'] = card.get('colorIdentity')
-    metacard['cmc'] = card.get('convertedManaCost')
-    metacard['mana'] = card.get('manaCost')
-    metacard['rarity'] = card.get('rarity')
-    metacard['power'] = card.get('power')
-    metacard['toughness'] = card.get('toughness')
-    metacard['scryfall'] = card.get('scryfallId')
-    metacard['uuid'] = card.get('uuid')
-    metacard["prices"] = prices
+    mcard = metadata[set_id][number]
+    mcard["name"] = card.get('name')
+    mcard['artist'] = card.get('artist')
+    mcard['color'] = card.get('colors')
+    mcard['identity'] = card.get('colorIdentity')
+    mcard['cmc'] = card.get('convertedManaCost')
+    mcard['mana'] = card.get('manaCost')
+    mcard['rarity'] = card.get('rarity')
+    mcard['power'] = card.get('power')
+    mcard['toughness'] = card.get('toughness')
+    mcard['scryfall'] = card.get('scryfallId')
+    mcard['uuid'] = card.get('uuid')
+    mcard["prices"] = prices
 
     # write locales
-    #   first write fallback data from locale-cache, then
-    #   replace with actual card locales if there are any.
-    metacard["locales"] = {}
+    mcard["locales"] = {}
+    locale = locales[card['name']]
 
-    # load fallback locales
-    for locale in locales.get(card['name'], {}):
-      metacard["locales"][locale] = locales[card['name']][locale]
+    language = "English"
+    locale_entry = locale[language]
 
-    # obtain english card locales
-    metacard["locales"]["English"] = {
-      'name': card.get('name'),
-      'type': card.get('type'),
-      'text': card.get('text'),
-      'mult': card['identifiers'].get('multiverseId'),
-    }
+    # add all possible fallback language data
+    for language in locale:
+      mcard["locales"][language] = {}
+      mcard["locales"][language]["name"] = 0
+      mcard["locales"][language]["text"] = 0
+      mcard["locales"][language]["type"] = 0
 
-    # obtain other card locales
-    for locale in card['foreignData']:
-      metacard["locales"][locale["language"]] = {
-        'name': locale.get('name'),
-        'type': locale.get('type'),
-        'text': locale.get('text'),
-        'mult': locale.get('multiverseId'),
-      }
+    # set english locale to the appropriate index
+    mcard["locales"][language] = {}
+    mcard["locales"][language]["name"] = locale_entry["name"].index(card.get("name")) or 0
+    mcard["locales"][language]["text"] = locale_entry["text"].index(card.get("text")) or 0
+    mcard["locales"][language]["type"] = locale_entry["type"].index(card.get("type")) or 0
+    mcard["locales"][language]["multiverse"] = int(card['identifiers'].get('multiverseId') or -1)
 
-with open("macaco-database.json", "w") as outfile:
-  json.dump(metadata, outfile)
+    # set foreign locale to the appropriate index
+    for card in card['foreignData']:
+      language = card.get("language")
+      locale_entry = locale[language]
+
+      mcard["locales"][language] = {}
+      mcard["locales"][language]["name"] = locale_entry["name"].index(card.get("name")) or 0
+      mcard["locales"][language]["text"] = locale_entry["text"].index(card.get("text")) or 0
+      mcard["locales"][language]["type"] = locale_entry["type"].index(card.get("type")) or 0
+      mcard["locales"][language]["multiverse"] = int(card.get('multiverseId') or -1)
+
+with open("macaco-locales.json", "w", encoding='utf8') as outfile:
+  json.dump(locales, outfile, ensure_ascii=False)
+
+with open("macaco-data.json", "w", encoding='utf8') as outfile:
+  json.dump(metadata, outfile, ensure_ascii=False)
