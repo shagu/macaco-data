@@ -34,9 +34,12 @@ jobs:
     - name: build
       run: |
         python build-data.py
-        gzip macaco-database.json
+        gzip macaco-data.json
+        gzip macaco-locales.json
 
     - name: upload
       run: |
-        gh release delete-asset nightly macaco-database.json.gz || true
-        gh release upload nightly ./macaco-database.json.gz
+        gh release delete-asset nightly macaco-data.json.gz || true
+        gh release delete-asset nightly macaco-locales.json.gz || true
+        gh release upload nightly ./macaco-data.json.gz
+        gh release upload nightly ./macaco-locales.json.gz
