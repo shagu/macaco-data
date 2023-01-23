@@ -63,34 +63,42 @@ for set_id in all_printings["data"].keys():
     if not set_id in metadata:
       metadata[set_id] = {}
 
-    # remove non-numbers
-    number = re.sub('\D', '', card["number"])
-
-    if not number in metadata[set_id]:
-      metadata[set_id][number] = { }
+    if not card["number"] in metadata[set_id]:
+      metadata[set_id][card["number"]] = { }
 
     # read price data
     prices = [ 0, 0, 0, 0 ]
 
     try:
-      # obtain cardkingdom card prices
+      # obtain cardkingdom card prices [normal]
       for date in all_prices["data"][card["uuid"]]["paper"]["cardkingdom"]["buylist"]["normal"]:
         prices[0] = all_prices["data"][card["uuid"]]["paper"]["cardkingdom"]["buylist"]["normal"][date]
+    except:
+      pass
 
+    try:
+      # obtain cardkingdom card prices [foil]
       for date in all_prices["data"][card["uuid"]]["paper"]["cardkingdom"]["buylist"]["foil"]:
         prices[1] = all_prices["data"][card["uuid"]]["paper"]["cardkingdom"]["buylist"]["foil"][date]
+    except:
+      pass
 
-      # obtain cardmarket card prices
+    try:
+      # obtain cardmarket card prices [normal]
       for date in all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["normal"]:
         prices[2] = all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["normal"][date]
+    except:
+      pass
 
+    try:
+      # obtain cardmarket card prices [foil]
       for date in all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["foil"]:
         prices[3] = all_prices["data"][card["uuid"]]["paper"]["cardmarket"]["retail"]["foil"][date]
     except:
       pass
 
     # read/write basic card data
-    mcard = metadata[set_id][number]
+    mcard = metadata[set_id][card["number"]]
     mcard["name"] = card.get('name')
     mcard['artist'] = card.get('artist')
     mcard['color'] = card.get('colors')
