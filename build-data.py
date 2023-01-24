@@ -114,7 +114,7 @@ for set_id in all_printings["data"].keys():
     mcard['rarity'] = card.get('rarity')
     mcard['power'] = card.get('power')
     mcard['toughness'] = card.get('toughness')
-    mcard['scryfall'] = card.get('scryfallId')
+    mcard['scryfall'] = card["identifiers"].get('scryfallId')
     mcard['uuid'] = card.get('uuid')
     mcard["prices"] = prices
 
