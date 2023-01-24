@@ -26,7 +26,7 @@ for set_id in all_printings["data"].keys():
     language = "English"
 
     if not language in lcard:
-      lcard[language] = { "name": [], "text": [], "type": [] }
+      lcard[language] = { "name": [], "text": [], "type": [], "flavor": [] }
 
     if not card.get('name') in lcard[language]["name"]:
       lcard[language]["name"].append(card.get('name'))
@@ -37,12 +37,15 @@ for set_id in all_printings["data"].keys():
     if not card.get('text') in lcard[language]["text"]:
       lcard[language]["text"].append(card.get('text'))
 
+    if not card.get('flavorText') in lcard[language]["flavor"]:
+      lcard[language]["flavor"].append(card.get('flavorText'))
+
     # other locales
     for card in card['foreignData']:
       language = card["language"]
 
       if not language in lcard:
-        lcard[language] = { "name": [], "text": [], "type": [] }
+        lcard[language] = { "name": [], "text": [], "type": [], "flavor": [] }
 
       if not card.get('name') in lcard[language]["name"]:
         lcard[language]["name"].append(card.get('name'))
@@ -52,6 +55,9 @@ for set_id in all_printings["data"].keys():
 
       if not card.get('text') in lcard[language]["text"]:
         lcard[language]["text"].append(card.get('text'))
+
+      if not card.get('flavorText') in lcard[language]["flavor"]:
+        lcard[language]["flavor"].append(card.get('flavorText'))
 
 # build macaco-metadata
 print("Building Card Metadata JSON...")
@@ -125,12 +131,14 @@ for set_id in all_printings["data"].keys():
       mcard["locales"][language]["name"] = 0
       mcard["locales"][language]["text"] = 0
       mcard["locales"][language]["type"] = 0
+      mcard["locales"][language]["flavor"] = 0
 
     # set english locale to the appropriate index
     mcard["locales"][language] = {}
     mcard["locales"][language]["name"] = locale_entry["name"].index(card.get("name")) or 0
     mcard["locales"][language]["text"] = locale_entry["text"].index(card.get("text")) or 0
     mcard["locales"][language]["type"] = locale_entry["type"].index(card.get("type")) or 0
+    mcard["locales"][language]["flavor"] = locale_entry["flavor"].index(card.get("flavorText")) or 0
     mcard["locales"][language]["multiverse"] = int(card['identifiers'].get('multiverseId') or -1)
 
     # set foreign locale to the appropriate index
@@ -142,6 +150,7 @@ for set_id in all_printings["data"].keys():
       mcard["locales"][language]["name"] = locale_entry["name"].index(card.get("name")) or 0
       mcard["locales"][language]["text"] = locale_entry["text"].index(card.get("text")) or 0
       mcard["locales"][language]["type"] = locale_entry["type"].index(card.get("type")) or 0
+      mcard["locales"][language]["flavor"] = locale_entry["flavor"].index(card.get("flavorText")) or 0
       mcard["locales"][language]["multiverse"] = int(card.get('multiverseId') or -1)
 
 with open("macaco-locales.json", "w", encoding='utf8') as outfile:
