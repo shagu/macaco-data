@@ -122,9 +122,6 @@ for set_id in all_printings["data"].keys():
     mcard["locales"] = {}
     locale = locales[card['name']]
 
-    language = "English"
-    locale_entry = locale[language]
-
     # add all possible fallback language data
     for language in locale:
       mcard["locales"][language] = {}
@@ -132,6 +129,10 @@ for set_id in all_printings["data"].keys():
       mcard["locales"][language]["text"] = 0
       mcard["locales"][language]["type"] = 0
       mcard["locales"][language]["flavor"] = 0
+      mcard["locales"][language]["multiverse"] = 0
+
+    language = "English"
+    locale_entry = locale[language]
 
     # set english locale to the appropriate index
     mcard["locales"][language] = {}
@@ -139,7 +140,7 @@ for set_id in all_printings["data"].keys():
     mcard["locales"][language]["text"] = locale_entry["text"].index(card.get("text")) or 0
     mcard["locales"][language]["type"] = locale_entry["type"].index(card.get("type")) or 0
     mcard["locales"][language]["flavor"] = locale_entry["flavor"].index(card.get("flavorText")) or 0
-    mcard["locales"][language]["multiverse"] = int(card['identifiers'].get('multiverseId') or -1)
+    mcard["locales"][language]["multiverse"] = int(card['identifiers'].get('multiverseId') or 0)
 
     # set foreign locale to the appropriate index
     for card in card['foreignData']:
@@ -151,7 +152,7 @@ for set_id in all_printings["data"].keys():
       mcard["locales"][language]["text"] = locale_entry["text"].index(card.get("text")) or 0
       mcard["locales"][language]["type"] = locale_entry["type"].index(card.get("type")) or 0
       mcard["locales"][language]["flavor"] = locale_entry["flavor"].index(card.get("flavorText")) or 0
-      mcard["locales"][language]["multiverse"] = int(card.get('multiverseId') or -1)
+      mcard["locales"][language]["multiverse"] = int(card.get('multiverseId') or 0)
 
 with open("macaco-locales.json", "w", encoding='utf8') as outfile:
   json.dump(locales, outfile, ensure_ascii=False)
