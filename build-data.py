@@ -111,6 +111,7 @@ for set_id in all_printings["data"].keys():
     mcard["name"] = card.get('name')
     mcard['artist'] = card.get('artist')
     mcard['color'] = card.get('colors')
+    mcard['types'] = card.get('types')
     mcard['identity'] = card.get('colorIdentity')
     mcard['cmc'] = card.get('convertedManaCost')
     mcard['mana'] = card.get('manaCost')
