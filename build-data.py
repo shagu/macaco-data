@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, re
+import json
 
 # load JSON files
 print("Loading JSON Input Files...")
@@ -18,7 +18,7 @@ for set_id in all_printings["data"].keys():
   for card in all_printings["data"][set_id]["cards"]:
     # prepare card locale table
     if not card["name"] in locales:
-      locales[card["name"]] = { }
+      locales[card["name"]] = {}
 
     lcard = locales[card["name"]]
 
@@ -65,12 +65,15 @@ metadata = {}
 
 for set_id in all_printings["data"].keys():
   for card in all_printings["data"][set_id]["cards"]:
+    # make all card numbers uppercase
+    number = card["number"].upper()
+
     # create set if not existing
     if not set_id in metadata:
       metadata[set_id] = {}
 
-    if not card["number"] in metadata[set_id]:
-      metadata[set_id][card["number"]] = { }
+    if not number in metadata[set_id]:
+      metadata[set_id][number] = {}
 
     # read price data
     prices = [ 0, 0, 0, 0 ]
@@ -104,7 +107,7 @@ for set_id in all_printings["data"].keys():
       pass
 
     # read/write basic card data
-    mcard = metadata[set_id][card["number"]]
+    mcard = metadata[set_id][number]
     mcard["name"] = card.get('name')
     mcard['artist'] = card.get('artist')
     mcard['color'] = card.get('colors')
